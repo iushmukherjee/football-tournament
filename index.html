@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Football League Table - Teams A to E</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 30px auto; padding: 0 20px; background: #f6f8fa; color: #24292f; }
+    h1, h2 { border-bottom: 2px solid #d0d7de; padding-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 24px; background: #ffffff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    th, td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #d0d7de; }
+    th { background: #f3f4f6; font-weight: 600; }
+    td.team-name { text-align: left; }
+    input[type="number"] { width: 45px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+    button { background: #2da44e; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    button:hover { background: #2c974b; }
+    .btn-reset { background: #cf222e; margin-top: 10px; }
+    .btn-reset:hover { background: #a40e26; }
+  </style>
+</head>
+<body>
+
+  <h1>⚽ Football League Standings</h1>
+
+  <!-- SINGLE LEAGUE TABLE -->
+  <h2>📊 League Table</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Pos</th>
+        <th style="text-align:left">Team</th>
+        <th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+      </tr>
+    </thead>
+    <tbody id="standings-body"></tbody>
+  </table>
+
+  <!-- ALL FIXTURES (EVERY TEAM PLAYS EVERY OTHER TEAM ONCE) -->
+  <h2>📅 League Fixtures (10 Matches)</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Match #</th>
+        <th style="text-align:right">Home Team</th>
+        <th>Score</th>
+        <th style="text-align:left">Away Team</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="fixtures-body"></tbody>
+  </table>
+
+  <button onclick="resetData()" class="btn-reset">Reset All Scores</button>
+
+  <script>
+    // 1. Teams List
+    const defaultTeams = ["A", "B", "C", "D", "E"];
+
+    // 2. Single Round-Robin Fixtures (Every team vs Every team once = 10 matches)
+    const defaultFixtures = [
+      { id: 1, home: "A", away: "B", homeScore: null, awayScore: null },
+      { id: 2, home: "C", away: "D", homeScore: null, awayScore: null },
+      { id: 3, home: "E", away: "A", homeScore: null, awayScore: null },
+      { id: 4, home: "B", away: "C", homeScore: null, awayScore: null },
+      { id: 5, home: "D", away: "E", homeScore: null, awayScore: null },
+      { id: 6, home: "A", away: "C", homeScore: null, awayScore: null },
+      { id: 7, home: "B", away: "D", homeScore: null, awayScore: null },
+      { id: 8, home: "C", away: "E", homeScore: null, awayScore: null },
+      { id: 9, home: "D", away: "A", homeScore: null, awayScore: null },
+      { id: 10, home: "E", away: "B", homeScore: null, awayScore: null }
+    ];
+
+    // Load saved fixtures from storage or set defaults
+    let fixtures = JSON.parse(localStorage.getItem("single_league_fixtures")) || defaultFixtures;
+
+    // Render Fixture Rows
+    function renderFixtures() {
+      const tbody = document.getElementById("fixtures-body");
+      tbody.innerHTML = "";
+
+      fixtures.forEach((match) => {
+        const hVal = match.homeScore !== null ? match.homeScore : "";
+        const aVal = match.awayScore !== null ? match.awayScore : "";
+
+        tbody.innerHTML += `
+          <tr>
+            <td>Match ${match.id}</td>
+            <td style="text-align:right"><strong>Team ${match.home}</strong></td>
+            <td>
+              <input type="number" id="h-${match.id}" value="${hVal}" min="0"> - 
+              <input type="number" id="a-${match.id}" value="${aVal}" min="0">
+            </td>
+            <td style="text-align:left"><strong>Team ${match.away}</strong></td>
+            <td><button onclick="saveScore(${match.id})">Save</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    // Save Score & Trigger Table Calculation
+    function saveScore(matchId) {
+      const hInput = document.getElementById(`h-${matchId}`).value;
+      const aInput = document.getElementById(`a-${matchId}`).value;
+
+      const match = fixtures.find(m => m.id === matchId);
+
+      if (hInput === "" || aInput === "") {
+        match.homeScore = null;
+        match.awayScore = null;
+      } else {
+        match.homeScore = parseInt(hInput);
+        match.awayScore = parseInt(aInput);
+      }
+
+      localStorage.setItem("single_league_fixtures", JSON.stringify(fixtures));
+      calculateStandings();
+    }
+
+    // Calculate Single League Table
+    function calculateStandings() {
+      const stats = {};
+      defaultTeams.forEach(t => {
+        stats[t] = { name: `Team ${t}`, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 };
+      });
+
+      fixtures.forEach(m => {
+        if (m.homeScore !== null && m.awayScore !== null) {
+          const h = stats[m.home];
+          const a = stats[m.away];
+
+          h.P++; a.P++;
+          h.GF += m.homeScore; h.GA += m.awayScore;
+          a.GF += m.awayScore; a.GA += m.homeScore;
+
+          if (m.homeScore > m.awayScore) {
+            h.W++; h.Pts += 3; a.L++;
+          } else if (m.awayScore > m.homeScore) {
+            a.W++; a.Pts += 3; h.L++;
+          } else {
+            h.D++; h.Pts += 1; a.D++; a.Pts += 1;
+          }
+
+          h.GD = h.GF - h.GA;
+          a.GD = a.GF - a.GA;
+        }
+      });
+
+      // Sort order: Points -> Goal Difference -> Goals For
+      const sorted = Object.values(stats).sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
+
+      const tbody = document.getElementById("standings-body");
+      tbody.innerHTML = sorted.map((t, i) => `
+        <tr>
+          <td><strong>${i + 1}</strong></td>
+          <td class="team-name"><strong>${t.name}</strong></td>
+          <td>${t.P}</td><td>${t.W}</td><td>${t.D}</td><td>${t.L}</td>
+          <td>${t.GF}</td><td>${t.GA}</td><td>${t.GD > 0 ? '+' + t.GD : t.GD}</td>
+          <td><strong>${t.Pts}</strong></td>
+        </tr>
+      `).join("");
+    }
+
+    function resetData() {
+      localStorage.removeItem("single_league_fixtures");
+      fixtures = JSON.parse(JSON.stringify(defaultFixtures));
+      renderFixtures();
+      calculateStandings();
+    }
+
+    // Initial Load
+    renderFixtures();
+    calculateStandings();
+  </script>
+</body>
+</html>
