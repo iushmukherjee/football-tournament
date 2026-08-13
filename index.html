@@ -3,15 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Football League Table - Teams A to E</title>
+  <title>Independence Cup Sisirkunja</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 800px; margin: 30px auto; padding: 0 20px; background: #f6f8fa; color: #24292f; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 850px; margin: 30px auto; padding: 0 20px; background: #f6f8fa; color: #24292f; }
     h1, h2 { border-bottom: 2px solid #d0d7de; padding-bottom: 8px; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 24px; background: #ffffff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    th, td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #d0d7de; }
+    th, td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #d0d7de; vertical-align: middle; }
     th { background: #f3f4f6; font-weight: 600; }
     td.team-name { text-align: left; }
-    input[type="number"] { width: 45px; padding: 5px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+    
+    /* Inline score container styling */
+    .score-container {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .score-input {
+      width: 45px !important;
+      padding: 6px;
+      text-align: center;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
     button { background: #2da44e; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
     button:hover { background: #2c974b; }
     .btn-reset { background: #cf222e; margin-top: 10px; }
@@ -20,10 +37,10 @@
 </head>
 <body>
 
-  <h1>⚽ Football League Standings</h1>
+  <h1>🏆 Independence Cup Sisirkunja</h1>
 
   <!-- SINGLE LEAGUE TABLE -->
-  <h2>📊 League Table</h2>
+  <h2>📊 League Standings</h2>
   <table>
     <thead>
       <tr>
@@ -35,14 +52,14 @@
     <tbody id="standings-body"></tbody>
   </table>
 
-  <!-- ALL FIXTURES (EVERY TEAM PLAYS EVERY OTHER TEAM ONCE) -->
-  <h2>📅 League Fixtures (10 Matches)</h2>
+  <!-- ALL FIXTURES -->
+  <h2>📅 Fixtures & Results (10 Matches)</h2>
   <table>
     <thead>
       <tr>
         <th>Match #</th>
         <th style="text-align:right">Home Team</th>
-        <th>Score</th>
+        <th style="width: 160px;">Score</th>
         <th style="text-align:left">Away Team</th>
         <th>Action</th>
       </tr>
@@ -56,7 +73,7 @@
     // 1. Teams List
     const defaultTeams = ["A", "B", "C", "D", "E"];
 
-    // 2. Single Round-Robin Fixtures (Every team vs Every team once = 10 matches)
+    // 2. Single Round-Robin Fixtures (10 matches)
     const defaultFixtures = [
       { id: 1, home: "A", away: "B", homeScore: null, awayScore: null },
       { id: 2, home: "C", away: "D", homeScore: null, awayScore: null },
@@ -71,7 +88,7 @@
     ];
 
     // Load saved fixtures from storage or set defaults
-    let fixtures = JSON.parse(localStorage.getItem("single_league_fixtures")) || defaultFixtures;
+    let fixtures = JSON.parse(localStorage.getItem("sisirkunja_fixtures")) || defaultFixtures;
 
     // Render Fixture Rows
     function renderFixtures() {
@@ -87,8 +104,11 @@
             <td>Match ${match.id}</td>
             <td style="text-align:right"><strong>Team ${match.home}</strong></td>
             <td>
-              <input type="number" id="h-${match.id}" value="${hVal}" min="0"> - 
-              <input type="number" id="a-${match.id}" value="${aVal}" min="0">
+              <div class="score-container">
+                <input type="number" id="h-${match.id}" class="score-input" value="${hVal}" min="0">
+                <span>-</span>
+                <input type="number" id="a-${match.id}" class="score-input" value="${aVal}" min="0">
+              </div>
             </td>
             <td style="text-align:left"><strong>Team ${match.away}</strong></td>
             <td><button onclick="saveScore(${match.id})">Save</button></td>
@@ -112,7 +132,7 @@
         match.awayScore = parseInt(aInput);
       }
 
-      localStorage.setItem("single_league_fixtures", JSON.stringify(fixtures));
+      localStorage.setItem("sisirkunja_fixtures", JSON.stringify(fixtures));
       calculateStandings();
     }
 
@@ -161,7 +181,7 @@
     }
 
     function resetData() {
-      localStorage.removeItem("single_league_fixtures");
+      localStorage.removeItem("sisirkunja_fixtures");
       fixtures = JSON.parse(JSON.stringify(defaultFixtures));
       renderFixtures();
       calculateStandings();
