@@ -6,13 +6,12 @@
   <title>Independence Cup Sisirkunja</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 850px; margin: 30px auto; padding: 0 20px; background: #f6f8fa; color: #24292f; }
-    h1, h2 { border-bottom: 2px solid #d0d7de; padding-bottom: 8px; }
+    h1, h2 { border-bottom: 2px solid #d0d7de; padding-bottom: 8px; margin-top: 30px; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 24px; background: #ffffff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     th, td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #d0d7de; vertical-align: middle; }
     th { background: #f3f4f6; font-weight: 600; }
     td.team-name { text-align: left; }
     
-    /* Inline score container styling */
     .score-container {
       display: inline-flex;
       align-items: center;
@@ -33,11 +32,16 @@
     button:hover { background: #2c974b; }
     .btn-reset { background: #cf222e; margin-top: 10px; }
     .btn-reset:hover { background: #a40e26; }
+    .playoff-table { border: 2px solid #0969da; }
+    .playoff-table th { background: #ddf4ff; color: #0969da; }
+    .champion-banner { background: #dafbe1; border: 1px solid #2da44e; padding: 12px; text-align: center; border-radius: 6px; font-size: 18px; font-weight: bold; color: #1a7f37; display: none; margin-bottom: 20px; }
   </style>
 </head>
 <body>
 
   <h1>🏆 Independence Cup Sisirkunja</h1>
+
+  <div id="champion-box" class="champion-banner"></div>
 
   <!-- SINGLE LEAGUE TABLE -->
   <h2>📊 League Standings</h2>
@@ -52,8 +56,8 @@
     <tbody id="standings-body"></tbody>
   </table>
 
-  <!-- ALL FIXTURES -->
-  <h2>📅 Fixtures & Results (10 Matches)</h2>
+  <!-- ALL LEAGUE FIXTURES -->
+  <h2>📅 League Stage (10 Matches)</h2>
   <table>
     <thead>
       <tr>
@@ -67,13 +71,26 @@
     <tbody id="fixtures-body"></tbody>
   </table>
 
-  <button onclick="resetData()" class="btn-reset">Reset All Scores</button>
+  <!-- PLAYOFFS (SEMI-FINALS & FINAL) -->
+  <h2>🥇 Knockout Stage (Playoffs)</h2>
+  <table class="playoff-table">
+    <thead>
+      <tr>
+        <th>Stage</th>
+        <th style="text-align:right">Home Team</th>
+        <th style="width: 160px;">Score</th>
+        <th style="text-align:left">Away Team</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="playoffs-body"></tbody>
+  </table>
+
+  <button onclick="resetData()" class="btn-reset">Reset All Tournament Data</button>
 
   <script>
-    // 1. Teams List
     const defaultTeams = ["A", "B", "C", "D", "E"];
 
-    // 2. Single Round-Robin Fixtures (10 matches)
     const defaultFixtures = [
       { id: 1, home: "A", away: "B", homeScore: null, awayScore: null },
       { id: 2, home: "C", away: "D", homeScore: null, awayScore: null },
@@ -87,10 +104,15 @@
       { id: 10, home: "E", away: "B", homeScore: null, awayScore: null }
     ];
 
-    // Load saved fixtures from storage or set defaults
-    let fixtures = JSON.parse(localStorage.getItem("sisirkunja_fixtures")) || defaultFixtures;
+    const defaultPlayoffs = [
+      { id: "SF1", name: "Semi-Final 1 (1st vs 4th)", home: "TBD", away: "TBD", homeScore: null, awayScore: null, winner: null },
+      { id: "SF2", name: "Semi-Final 2 (2nd vs 3rd)", home: "TBD", away: "TBD", homeScore: null, awayScore: null, winner: null },
+      { id: "F", name: "FINAL", home: "Winner SF1", away: "Winner SF2", homeScore: null, awayScore: null, winner: null }
+    ];
 
-    // Render Fixture Rows
+    let fixtures = JSON.parse(localStorage.getItem("sisirkunja_fixtures")) || defaultFixtures;
+    let playoffs = JSON.parse(localStorage.getItem("sisirkunja_playoffs")) || defaultPlayoffs;
+
     function renderFixtures() {
       const tbody = document.getElementById("fixtures-body");
       tbody.innerHTML = "";
@@ -117,7 +139,32 @@
       });
     }
 
-    // Save Score & Trigger Table Calculation
+    function renderPlayoffs() {
+      const tbody = document.getElementById("playoffs-body");
+      tbody.innerHTML = "";
+
+      playoffs.forEach((p) => {
+        const hVal = p.homeScore !== null ? p.homeScore : "";
+        const aVal = p.awayScore !== null ? p.awayScore : "";
+
+        tbody.innerHTML += `
+          <tr>
+            <td><strong>${p.name}</strong></td>
+            <td style="text-align:right"><strong>${p.home}</strong></td>
+            <td>
+              <div class="score-container">
+                <input type="number" id="ph-${p.id}" class="score-input" value="${hVal}" min="0">
+                <span>-</span>
+                <input type="number" id="pa-${p.id}" class="score-input" value="${aVal}" min="0">
+              </div>
+            </td>
+            <td style="text-align:left"><strong>${p.away}</strong></td>
+            <td><button onclick="savePlayoffScore('${p.id}')">Save</button></td>
+          </tr>
+        `;
+      });
+    }
+
     function saveScore(matchId) {
       const hInput = document.getElementById(`h-${matchId}`).value;
       const aInput = document.getElementById(`a-${matchId}`).value;
@@ -136,7 +183,47 @@
       calculateStandings();
     }
 
-    // Calculate Single League Table
+    function savePlayoffScore(playoffId) {
+      const hInput = document.getElementById(`ph-${playoffId}`).value;
+      const aInput = document.getElementById(`pa-${playoffId}`).value;
+
+      const p = playoffs.find(item => item.id === playoffId);
+
+      if (hInput === "" || aInput === "") {
+        p.homeScore = null;
+        p.awayScore = null;
+        p.winner = null;
+      } else {
+        p.homeScore = parseInt(hInput);
+        p.awayScore = parseInt(aInput);
+
+        if (p.homeScore > p.awayScore) {
+          p.winner = p.home;
+        } else if (p.awayScore > p.homeScore) {
+          p.winner = p.away;
+        } else {
+          alert("Draws not allowed in playoffs! Enter winning penalty score or extra time result.");
+          return;
+        }
+      }
+
+      // Automatically update the final match pairing if SF1 or SF2 are saved
+      if (playoffId === 'SF1' && p.winner) playoffs[2].home = p.winner;
+      if (playoffId === 'SF2' && p.winner) playoffs[2].away = p.winner;
+
+      // Champion Banner Display
+      const champBox = document.getElementById("champion-box");
+      if (playoffs[2].winner) {
+        champBox.style.display = "block";
+        champBox.innerHTML = `🎉 CHAMPIONS OF INDEPENDENCE CUP: ${playoffs[2].winner} 🎉`;
+      } else {
+        champBox.style.display = "none";
+      }
+
+      localStorage.setItem("sisirkunja_playoffs", JSON.stringify(playoffs));
+      renderPlayoffs();
+    }
+
     function calculateStandings() {
       const stats = {};
       defaultTeams.forEach(t => {
@@ -165,7 +252,6 @@
         }
       });
 
-      // Sort order: Points -> Goal Difference -> Goals For
       const sorted = Object.values(stats).sort((a, b) => b.Pts - a.Pts || b.GD - a.GD || b.GF - a.GF);
 
       const tbody = document.getElementById("standings-body");
@@ -178,16 +264,26 @@
           <td><strong>${t.Pts}</strong></td>
         </tr>
       `).join("");
+
+      // Update Semi-Final Teams dynamically from top 4 standings
+      if (playoffs[0].homeScore === null) playoffs[0].home = sorted[0].name; // 1st Place
+      if (playoffs[0].awayScore === null) playoffs[0].away = sorted[3].name; // 4th Place
+      if (playoffs[1].homeScore === null) playoffs[1].home = sorted[1].name; // 2nd Place
+      if (playoffs[1].awayScore === null) playoffs[1].away = sorted[2].name; // 3rd Place
+
+      renderPlayoffs();
     }
 
     function resetData() {
       localStorage.removeItem("sisirkunja_fixtures");
+      localStorage.removeItem("sisirkunja_playoffs");
       fixtures = JSON.parse(JSON.stringify(defaultFixtures));
+      playoffs = JSON.parse(JSON.stringify(defaultPlayoffs));
+      document.getElementById("champion-box").style.display = "none";
       renderFixtures();
       calculateStandings();
     }
 
-    // Initial Load
     renderFixtures();
     calculateStandings();
   </script>
