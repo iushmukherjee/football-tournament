@@ -30,7 +30,7 @@
 
     button { background: #2da44e; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
     button:hover { background: #2c974b; }
-    .btn-reset { background: #cf222e; margin-top: 10px; }
+    .btn-reset { background: #cf222e; margin-top: 10px; margin-bottom: 40px; }
     .btn-reset:hover { background: #a40e26; }
     .playoff-table { border: 2px solid #0969da; }
     .playoff-table th { background: #ddf4ff; color: #0969da; }
@@ -105,13 +105,13 @@
     ];
 
     const defaultPlayoffs = [
-      { id: "SF1", name: "Semi-Final 1 (1st vs 4th)", home: "TBD", away: "TBD", homeScore: null, awayScore: null, winner: null },
-      { id: "SF2", name: "Semi-Final 2 (2nd vs 3rd)", home: "TBD", away: "TBD", homeScore: null, awayScore: null, winner: null },
+      { id: "SF1", name: "Semi-Final 1 (1st vs 4th)", home: "Team A", away: "Team D", homeScore: null, awayScore: null, winner: null },
+      { id: "SF2", name: "Semi-Final 2 (2nd vs 3rd)", home: "Team B", away: "Team C", homeScore: null, awayScore: null, winner: null },
       { id: "F", name: "FINAL", home: "Winner SF1", away: "Winner SF2", homeScore: null, awayScore: null, winner: null }
     ];
 
-    let fixtures = JSON.parse(localStorage.getItem("sisirkunja_fixtures")) || defaultFixtures;
-    let playoffs = JSON.parse(localStorage.getItem("sisirkunja_playoffs")) || defaultPlayoffs;
+    let fixtures = JSON.parse(localStorage.getItem("sisirkunja_fixtures")) || JSON.parse(JSON.stringify(defaultFixtures));
+    let playoffs = JSON.parse(localStorage.getItem("sisirkunja_playoffs")) || JSON.parse(JSON.stringify(defaultPlayoffs));
 
     function renderFixtures() {
       const tbody = document.getElementById("fixtures-body");
@@ -207,11 +207,9 @@
         }
       }
 
-      // Automatically update the final match pairing if SF1 or SF2 are saved
-      if (playoffId === 'SF1' && p.winner) playoffs[2].home = p.winner;
-      if (playoffId === 'SF2' && p.winner) playoffs[2].away = p.winner;
+      if (playoffId === 'SF1') playoffs[2].home = p.winner ? p.winner : "Winner SF1";
+      if (playoffId === 'SF2') playoffs[2].away = p.winner ? p.winner : "Winner SF2";
 
-      // Champion Banner Display
       const champBox = document.getElementById("champion-box");
       if (playoffs[2].winner) {
         champBox.style.display = "block";
@@ -265,23 +263,36 @@
         </tr>
       `).join("");
 
-      // Update Semi-Final Teams dynamically from top 4 standings
-      if (playoffs[0].homeScore === null) playoffs[0].home = sorted[0].name; // 1st Place
-      if (playoffs[0].awayScore === null) playoffs[0].away = sorted[3].name; // 4th Place
-      if (playoffs[1].homeScore === null) playoffs[1].home = sorted[1].name; // 2nd Place
-      if (playoffs[1].awayScore === null) playoffs[1].away = sorted[2].name; // 3rd Place
+      // Update playoff team names unless manually saved
+      if (playoffs[0].homeScore === null) playoffs[0].home = sorted[0].name; 
+      if (playoffs[0].awayScore === null) playoffs[0].away = sorted[3].name; 
+      if (playoffs[1].homeScore === null) playoffs[1].home = sorted[1].name; 
+      if (playoffs[1].awayScore === null) playoffs[1].away = sorted[2].name; 
 
       renderPlayoffs();
     }
 
+    // COMPLETE OVERHAUL FOR RESET ALL TOURNAMENT DATA
     function resetData() {
-      localStorage.removeItem("sisirkunja_fixtures");
-      localStorage.removeItem("sisirkunja_playoffs");
-      fixtures = JSON.parse(JSON.stringify(defaultFixtures));
-      playoffs = JSON.parse(JSON.stringify(defaultPlayoffs));
-      document.getElementById("champion-box").style.display = "none";
-      renderFixtures();
-      calculateStandings();
+      if (confirm("Are you sure you want to reset all match scores and tournament data?")) {
+        // 1. Wipe local storage
+        localStorage.removeItem("sisirkunja_fixtures");
+        localStorage.removeItem("sisirkunja_playoffs");
+
+        // 2. Deep reset state variables
+        fixtures = JSON.parse(JSON.stringify(defaultFixtures));
+        playoffs = JSON.parse(JSON.stringify(defaultPlayoffs));
+
+        // 3. Clear Champion Box
+        document.getElementById("champion-box").style.display = "none";
+
+        // 4. Force re-render of HTML tables & calculate standings
+        renderFixtures();
+        calculateStandings();
+
+        // 5. Force clear all visible score inputs
+        document.querySelectorAll('input[type="number"]').forEach(input => input.value = "");
+      }
     }
 
     renderFixtures();
