@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Independence Cup Sisirkunja</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 850px; margin: 30px auto; padding: 0 20px; background: #f6f8fa; color: #24292f; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 900px; margin: 30px auto; padding: 0 20px; background: #f6f8fa; color: #24292f; }
     h1, h2 { border-bottom: 2px solid #d0d7de; padding-bottom: 8px; margin-top: 30px; }
     table { width: 100%; border-collapse: collapse; margin-bottom: 24px; background: #ffffff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     th, td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #d0d7de; vertical-align: middle; }
@@ -89,29 +89,37 @@
   <button onclick="resetData()" class="btn-reset">Reset All Tournament Data</button>
 
   <script>
-    const defaultTeams = ["A", "B", "C", "D", "E"];
+    // 1. Official Team Names with Country Flags
+    const defaultTeams = [
+      "🇪🇬 Exciting Egyptians", 
+      "🇨🇻 Charismatic Cabo Verde", 
+      "🇧🇪 Belgian Bliss", 
+      "🇦🇷 Awesome Argentines", 
+      "🇵🇹 Passionate Portuguese"
+    ];
 
+    // 2. Schedule for 5 Teams (Single Round-Robin)
     const defaultFixtures = [
-      { id: 1, home: "A", away: "B", homeScore: null, awayScore: null },
-      { id: 2, home: "C", away: "D", homeScore: null, awayScore: null },
-      { id: 3, home: "E", away: "A", homeScore: null, awayScore: null },
-      { id: 4, home: "B", away: "C", homeScore: null, awayScore: null },
-      { id: 5, home: "D", away: "E", homeScore: null, awayScore: null },
-      { id: 6, home: "A", away: "C", homeScore: null, awayScore: null },
-      { id: 7, home: "B", away: "D", homeScore: null, awayScore: null },
-      { id: 8, home: "C", away: "E", homeScore: null, awayScore: null },
-      { id: 9, home: "D", away: "A", homeScore: null, awayScore: null },
-      { id: 10, home: "E", away: "B", homeScore: null, awayScore: null }
+      { id: 1, home: "🇪🇬 Exciting Egyptians", away: "🇨🇻 Charismatic Cabo Verde", homeScore: null, awayScore: null },
+      { id: 2, home: "🇧🇪 Belgian Bliss", away: "🇦🇷 Awesome Argentines", homeScore: null, awayScore: null },
+      { id: 3, home: "🇵🇹 Passionate Portuguese", away: "🇪🇬 Exciting Egyptians", homeScore: null, awayScore: null },
+      { id: 4, home: "🇨🇻 Charismatic Cabo Verde", away: "🇧🇪 Belgian Bliss", homeScore: null, awayScore: null },
+      { id: 5, home: "🇦🇷 Awesome Argentines", away: "🇵🇹 Passionate Portuguese", homeScore: null, awayScore: null },
+      { id: 6, home: "🇪🇬 Exciting Egyptians", away: "🇧🇪 Belgian Bliss", homeScore: null, awayScore: null },
+      { id: 7, home: "🇨🇻 Charismatic Cabo Verde", away: "🇦🇷 Awesome Argentines", homeScore: null, awayScore: null },
+      { id: 8, home: "🇧🇪 Belgian Bliss", away: "🇵🇹 Passionate Portuguese", homeScore: null, awayScore: null },
+      { id: 9, home: "🇦🇷 Awesome Argentines", away: "🇪🇬 Exciting Egyptians", homeScore: null, awayScore: null },
+      { id: 10, home: "🇵🇹 Passionate Portuguese", away: "🇨🇻 Charismatic Cabo Verde", homeScore: null, awayScore: null }
     ];
 
     const defaultPlayoffs = [
-      { id: "SF1", name: "Semi-Final 1 (1st vs 4th)", home: "Team A", away: "Team D", homeScore: null, awayScore: null, winner: null },
-      { id: "SF2", name: "Semi-Final 2 (2nd vs 3rd)", home: "Team B", away: "Team C", homeScore: null, awayScore: null, winner: null },
+      { id: "SF1", name: "Semi-Final 1 (1st vs 4th)", home: "TBD", away: "TBD", homeScore: null, awayScore: null, winner: null },
+      { id: "SF2", name: "Semi-Final 2 (2nd vs 3rd)", home: "TBD", away: "TBD", homeScore: null, awayScore: null, winner: null },
       { id: "F", name: "FINAL", home: "Winner SF1", away: "Winner SF2", homeScore: null, awayScore: null, winner: null }
     ];
 
-    let fixtures = JSON.parse(localStorage.getItem("sisirkunja_fixtures")) || JSON.parse(JSON.stringify(defaultFixtures));
-    let playoffs = JSON.parse(localStorage.getItem("sisirkunja_playoffs")) || JSON.parse(JSON.stringify(defaultPlayoffs));
+    let fixtures = JSON.parse(localStorage.getItem("sisirkunja_fixtures_v3")) || JSON.parse(JSON.stringify(defaultFixtures));
+    let playoffs = JSON.parse(localStorage.getItem("sisirkunja_playoffs_v3")) || JSON.parse(JSON.stringify(defaultPlayoffs));
 
     function renderFixtures() {
       const tbody = document.getElementById("fixtures-body");
@@ -124,7 +132,7 @@
         tbody.innerHTML += `
           <tr>
             <td>Match ${match.id}</td>
-            <td style="text-align:right"><strong>Team ${match.home}</strong></td>
+            <td style="text-align:right"><strong>${match.home}</strong></td>
             <td>
               <div class="score-container">
                 <input type="number" id="h-${match.id}" class="score-input" value="${hVal}" min="0">
@@ -132,7 +140,7 @@
                 <input type="number" id="a-${match.id}" class="score-input" value="${aVal}" min="0">
               </div>
             </td>
-            <td style="text-align:left"><strong>Team ${match.away}</strong></td>
+            <td style="text-align:left"><strong>${match.away}</strong></td>
             <td><button onclick="saveScore(${match.id})">Save</button></td>
           </tr>
         `;
@@ -179,7 +187,7 @@
         match.awayScore = parseInt(aInput);
       }
 
-      localStorage.setItem("sisirkunja_fixtures", JSON.stringify(fixtures));
+      localStorage.setItem("sisirkunja_fixtures_v3", JSON.stringify(fixtures));
       calculateStandings();
     }
 
@@ -218,14 +226,14 @@
         champBox.style.display = "none";
       }
 
-      localStorage.setItem("sisirkunja_playoffs", JSON.stringify(playoffs));
+      localStorage.setItem("sisirkunja_playoffs_v3", JSON.stringify(playoffs));
       renderPlayoffs();
     }
 
     function calculateStandings() {
       const stats = {};
       defaultTeams.forEach(t => {
-        stats[t] = { name: `Team ${t}`, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 };
+        stats[t] = { name: t, P: 0, W: 0, D: 0, L: 0, GF: 0, GA: 0, GD: 0, Pts: 0 };
       });
 
       fixtures.forEach(m => {
@@ -263,7 +271,6 @@
         </tr>
       `).join("");
 
-      // Update playoff team names unless manually saved
       if (playoffs[0].homeScore === null) playoffs[0].home = sorted[0].name; 
       if (playoffs[0].awayScore === null) playoffs[0].away = sorted[3].name; 
       if (playoffs[1].homeScore === null) playoffs[1].home = sorted[1].name; 
@@ -272,25 +279,19 @@
       renderPlayoffs();
     }
 
-    // COMPLETE OVERHAUL FOR RESET ALL TOURNAMENT DATA
     function resetData() {
       if (confirm("Are you sure you want to reset all match scores and tournament data?")) {
-        // 1. Wipe local storage
-        localStorage.removeItem("sisirkunja_fixtures");
-        localStorage.removeItem("sisirkunja_playoffs");
+        localStorage.removeItem("sisirkunja_fixtures_v3");
+        localStorage.removeItem("sisirkunja_playoffs_v3");
 
-        // 2. Deep reset state variables
         fixtures = JSON.parse(JSON.stringify(defaultFixtures));
         playoffs = JSON.parse(JSON.stringify(defaultPlayoffs));
 
-        // 3. Clear Champion Box
         document.getElementById("champion-box").style.display = "none";
 
-        // 4. Force re-render of HTML tables & calculate standings
         renderFixtures();
         calculateStandings();
 
-        // 5. Force clear all visible score inputs
         document.querySelectorAll('input[type="number"]').forEach(input => input.value = "");
       }
     }
