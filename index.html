@@ -99,33 +99,33 @@
       "🇫🇷 Fantastic French"
     ];
 
-    // 2. 15 Matches (No consecutive matches for any team)
+    // 2. 15 Matches (Exciting Egyptians debut on Matchday 2; zero back-to-back games)
     const defaultFixtures = [
       { id: 1, home: "🇧🇪 Belgian Bliss", away: "🇦🇷 Awesome Argentines", homeScore: null, awayScore: null },
-      { id: 2, home: "🇵🇹 Passionate Portuguese", away: "🇫🇷 Fantastic French", homeScore: null, awayScore: null },
-      { id: 3, home: "🇪🇬 Exciting Egyptians", away: "🇨🇻 Charismatic Cabo Verde", homeScore: null, awayScore: null },
-      { id: 4, home: "🇧🇪 Belgian Bliss", away: "🇫🇷 Fantastic French", homeScore: null, awayScore: null },
-      { id: 5, home: "🇨🇻 Charismatic Cabo Verde", away: "🇦🇷 Awesome Argentines", homeScore: null, awayScore: null },
-      { id: 6, home: "🇪🇬 Exciting Egyptians", away: "🇵🇹 Passionate Portuguese", homeScore: null, awayScore: null },
-      { id: 7, home: "🇨🇻 Charismatic Cabo Verde", away: "🇫🇷 Fantastic French", homeScore: null, awayScore: null },
+      { id: 2, home: "🇪🇬 Exciting Egyptians", away: "🇨🇻 Charismatic Cabo Verde", homeScore: null, awayScore: null },
+      { id: 3, home: "🇵🇹 Passionate Portuguese", away: "🇫🇷 Fantastic French", homeScore: null, awayScore: null },
+      { id: 4, home: "🇧🇪 Belgian Bliss", away: "🇨🇻 Charismatic Cabo Verde", homeScore: null, awayScore: null },
+      { id: 5, home: "🇪🇬 Exciting Egyptians", away: "🇵🇹 Passionate Portuguese", homeScore: null, awayScore: null },
+      { id: 6, home: "🇦🇷 Awesome Argentines", away: "🇫🇷 Fantastic French", homeScore: null, awayScore: null },
+      { id: 7, home: "🇨🇻 Charismatic Cabo Verde", away: "🇵🇹 Passionate Portuguese", homeScore: null, awayScore: null },
       { id: 8, home: "🇧🇪 Belgian Bliss", away: "🇪🇬 Exciting Egyptians", homeScore: null, awayScore: null },
       { id: 9, home: "🇦🇷 Awesome Argentines", away: "🇵🇹 Passionate Portuguese", homeScore: null, awayScore: null },
       { id: 10, home: "🇪🇬 Exciting Egyptians", away: "🇫🇷 Fantastic French", homeScore: null, awayScore: null },
-      { id: 11, home: "🇨🇻 Charismatic Cabo Verde", away: "🇧🇪 Belgian Bliss", homeScore: null, awayScore: null },
-      { id: 12, home: "🇪🇬 Exciting Egyptians", away: "🇦🇷 Awesome Argentines", homeScore: null, awayScore: null },
-      { id: 13, home: "🇨🇻 Charismatic Cabo Verde", away: "🇵🇹 Passionate Portuguese", homeScore: null, awayScore: null },
-      { id: 14, home: "🇧🇪 Belgian Bliss", away: "🇵🇹 Passionate Portuguese", homeScore: null, awayScore: null },
-      { id: 15, home: "🇦🇷 Awesome Argentines", away: "🇫🇷 Fantastic French", homeScore: null, awayScore: null }
+      { id: 11, home: "🇨🇻 Charismatic Cabo Verde", away: "🇦🇷 Awesome Argentines", homeScore: null, awayScore: null },
+      { id: 12, home: "🇧🇪 Belgian Bliss", away: "🇵🇹 Passionate Portuguese", homeScore: null, awayScore: null },
+      { id: 13, home: "🇨🇻 Charismatic Cabo Verde", away: "🇫🇷 Fantastic French", homeScore: null, awayScore: null },
+      { id: 14, home: "🇪🇬 Exciting Egyptians", away: "🇦🇷 Awesome Argentines", homeScore: null, awayScore: null },
+      { id: 15, home: "🇧🇪 Belgian Bliss", away: "🇫🇷 Fantastic French", homeScore: null, awayScore: null }
     ];
 
-    // 3. New Playoff Format (Qualifier: 2nd vs 3rd | Final: 1st vs Winner Qualifier)
+    // 3. Playoff Format (Qualifier: 2nd vs 3rd | Final: 1st vs Winner Qualifier)
     const defaultPlayoffs = [
       { id: "Q", name: "Qualifier (2nd vs 3rd)", home: "TBD", away: "TBD", homeScore: null, awayScore: null, winner: null },
       { id: "F", name: "FINAL (1st vs Winner Qualifier)", home: "TBD", away: "Winner Qualifier", homeScore: null, awayScore: null, winner: null }
     ];
 
-    let fixtures = JSON.parse(localStorage.getItem("sisirkunja_fixtures_v7")) || JSON.parse(JSON.stringify(defaultFixtures));
-    let playoffs = JSON.parse(localStorage.getItem("sisirkunja_playoffs_v7")) || JSON.parse(JSON.stringify(defaultPlayoffs));
+    let fixtures = JSON.parse(localStorage.getItem("sisirkunja_fixtures_v8")) || JSON.parse(JSON.stringify(defaultFixtures));
+    let playoffs = JSON.parse(localStorage.getItem("sisirkunja_playoffs_v8")) || JSON.parse(JSON.stringify(defaultPlayoffs));
 
     function renderFixtures() {
       const tbody = document.getElementById("fixtures-body");
@@ -193,7 +193,7 @@
         match.awayScore = parseInt(aInput);
       }
 
-      localStorage.setItem("sisirkunja_fixtures_v7", JSON.stringify(fixtures));
+      localStorage.setItem("sisirkunja_fixtures_v8", JSON.stringify(fixtures));
       calculateStandings();
     }
 
@@ -221,7 +221,6 @@
         }
       }
 
-      // Update Qualifier winner into the Final match
       if (playoffId === 'Q') {
         playoffs[1].away = p.winner ? p.winner : "Winner Qualifier";
       }
@@ -234,7 +233,7 @@
         champBox.style.display = "none";
       }
 
-      localStorage.setItem("sisirkunja_playoffs_v7", JSON.stringify(playoffs));
+      localStorage.setItem("sisirkunja_playoffs_v8", JSON.stringify(playoffs));
       renderPlayoffs();
     }
 
@@ -282,7 +281,7 @@
       // 1st Place direct to Final Home slot
       playoffs[1].home = sorted[0].name;
 
-      // 2nd vs 3rd in Qualifier (unless playoff scores are already filled/saved)
+      // 2nd vs 3rd in Qualifier
       if (playoffs[0].homeScore === null) playoffs[0].home = sorted[1].name; 
       if (playoffs[0].awayScore === null) playoffs[0].away = sorted[2].name; 
 
@@ -291,8 +290,8 @@
 
     function resetData() {
       if (confirm("Are you sure you want to reset all match scores and tournament data?")) {
-        localStorage.removeItem("sisirkunja_fixtures_v7");
-        localStorage.removeItem("sisirkunja_playoffs_v7");
+        localStorage.removeItem("sisirkunja_fixtures_v8");
+        localStorage.removeItem("sisirkunja_playoffs_v8");
 
         fixtures = JSON.parse(JSON.stringify(defaultFixtures));
         playoffs = JSON.parse(JSON.stringify(defaultPlayoffs));
